@@ -5,7 +5,6 @@
  */
 
 const path = require('path');
-const fs = require('fs');
 
 /**
  * Validate recording file name
@@ -130,9 +129,103 @@ function sanitizeCommand(command) {
   return { valid: true, command: command.trim() };
 }
 
+/**
+ * Validate file name for security
+ * 
+ * @param  {String}  filename
+ * @return {Boolean}
+ */
+function validateFileName(filename) {
+  if (!filename || typeof filename !== 'string') {
+    return false;
+  }
+
+  // Check for path traversal
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    return false;
+  }
+
+  // Check for dangerous characters
+  const dangerousChars = /[<>:"/\\|?*\u0000-\u001f]/;
+  if (dangerousChars.test(filename)) {
+    return false;
+  }
+
+  // Check for Windows reserved names
+  const reservedNames = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'];
+  const nameWithoutExt = filename.split('.')[0].toUpperCase();
+  if (reservedNames.includes(nameWithoutExt)) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validate command for security
+ * 
+ * @param  {String}  command
+ * @return {Boolean}
+ */
+function validateCommand(command) {
+  if (!command || typeof command !== 'string') {
+    return false;
+  }
+
+  // Check for dangerous patterns
+  const dangerousPatterns = [
+    /rm\s+-rf\s+\//,  // rm -rf /
+    /\$\(/,           // Command substitution
+    /`/,              // Backticks
+    /\|\s*bash/,      // Pipe to bash
+    /\|\s*sh/,        // Pipe to sh
+    /&&|;|\|/,        // Command chaining
+    />/,              // Redirection
+    /</               // Input redirection
+  ];
+
+  for (const pattern of dangerousPatterns) {
+    if (pattern.test(command)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Validate path for security
+ * 
+ * @param  {String}  filePath
+ * @return {Boolean}
+ */
+function validatePath(filePath) {
+  if (!filePath || typeof filePath !== 'string') {
+    return false;
+  }
+
+  // Check for path traversal
+  if (filePath.includes('..')) {
+    return false;
+  }
+
+  // Check for absolute paths to sensitive directories
+  const sensitivePaths = ['/etc/', '/root/', '/home/', 'C:\\Windows\\', 'C:\\Users\\'];
+  for (const sensPath of sensitivePaths) {
+    if (filePath.startsWith(sensPath)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 module.exports = {
   validateRecordingFile,
   validateFilePath,
   validateConfig,
-  sanitizeCommand
+  sanitizeCommand,
+  validateFileName,
+  validateCommand,
+  validatePath
 };

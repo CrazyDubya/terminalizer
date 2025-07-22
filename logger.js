@@ -67,5 +67,11 @@ class Logger {
 
 module.exports = {
   Logger,
-  LEVELS
+  LEVELS,
+  error: Logger.error,
+  warn: Logger.warn,
+  info: Logger.info,
+  debug: Logger.debug,
+  success: Logger.success,
+  progress: Logger.progress
 };

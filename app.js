@@ -6,7 +6,7 @@
 
 var yargs = require('yargs'),
     requireDir = require('require-dir');
-var package = require('./package.json'),
+var packageJson = require('./package.json'),
     commands = requireDir('./commands'),
     DI = require('./di.js');
 
@@ -55,7 +55,7 @@ yargs.usage('Usage: $0 <command> [options]')
      // Add link
      .epilogue('For more information, check https://www.terminalizer.com')
      // Set the version number
-     .version(package.version)
+     .version(packageJson.version)
      // Add aliases for version and help options
      .alias({v: 'version', h: 'help'})
      // Require to pass a command
