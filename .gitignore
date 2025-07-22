@@ -21,6 +21,10 @@ node_modules
 # Build
 render/dist
 
+# Testing
+coverage/
+*.test.js.snap
+
 # Private assets
 demo
 logo
