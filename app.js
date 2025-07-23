@@ -6,7 +6,7 @@
 
 var yargs = require('yargs'),
     requireDir = require('require-dir');
-var package = require('./package.json'),
+var packageJson = require('./package.json'),
     commands = requireDir('./commands'),
     DI = require('./di.js');
 
@@ -47,13 +47,15 @@ di.set('spawn', require('child_process').spawn);
 di.set('utility', require('./utility.js'));
 di.set('commands', commands);
 di.set('errorHandler', errorHandler);
+di.set('Logger', require('./logger.js').Logger);
+di.set('validation', require('./validation.js'));
 
 // Initialize yargs
 yargs.usage('Usage: $0 <command> [options]')
      // Add link
      .epilogue('For more information, check https://www.terminalizer.com')
      // Set the version number
-     .version(package.version)
+     .version(packageJson.version)
      // Add aliases for version and help options
      .alias({v: 'version', h: 'help'})
      // Require to pass a command
@@ -74,8 +76,6 @@ yargs.command(commands.init)
      .command(commands.share)
      .command(commands.generate)
 
-debugger;
-
 try {
 
   // Parse the command line arguments
@@ -95,9 +95,17 @@ try {
  */
 function errorHandler(error) {
 
-  error = error.toString();
+  // Preserve stack trace for Error objects
+  var errorMessage = error instanceof Error ? error.message : error.toString();
+  var stackTrace = error instanceof Error && error.stack ? error.stack : null;
 
-  console.error('Error: \n  ' + error + '\n');
+  console.error('Error: \n  ' + errorMessage + '\n');
+  
+  // Show stack trace in development or if explicitly an Error object
+  if (stackTrace && (process.env.NODE_ENV === 'development' || process.env.DEBUG)) {
+    console.error('Stack trace:\n' + stackTrace + '\n');
+  }
+  
   console.error('Hint:\n  Use the ' + di.chalk.green('--help') + ' option to get help about the usage');
   process.exit(1);
 

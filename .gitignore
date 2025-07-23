@@ -21,6 +21,13 @@ node_modules
 # Build
 render/dist
 
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+*.test.js.snap
+
 # Private assets
 demo
 logo
